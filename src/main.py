@@ -4,7 +4,6 @@ from ortools.sat.python import cp_model
 
 from Dimacs_Interface import dimacs_str_to_int_list, extract_counts_from_dimacs
 from RuleBuilder import create_all_vars, add_all_rules_from_dimacs, create_freq_of_vars, set_zero_freq, set_one_freq
-from txt_interface import read_txt_file, save_model_to_dir
 
 
 def get_value_of(var: cp_model.IntVar, model: cp_model.CpModel) -> int:
@@ -33,13 +32,12 @@ def find_min_max_of_var(var: cp_model.IntVar, model: cp_model.CpModel) -> list[i
 
 def main():
     file_name = "cnfBuilder100VarsVariance517684924774.txt"
-    dimacs_file: list[str] = read_txt_file(file_name)
+    dimacs_file: list[str] = [line.strip() for line in open(file_name)]
 
     cnf_int: list[list[int]] = dimacs_str_to_int_list(dimacs_file)
 
     counts = extract_counts_from_dimacs(dimacs_file)
     number_of_variables: int = counts[0]
-    number_of_Clauses: int = counts[1]
 
     number_of_decimal_places = 100
 
@@ -99,8 +97,14 @@ def main():
         # ebr_input = int(ebr_input)
         # model.Add(vars[str(var) + "_freq"] == ebr_input)
 
-    save_model_to_dir(model, f"freq_result_{os.path.basename(file_name)}.txt", number_of_variables,
-                      number_of_decimal_places, all_vars)
+    # save result to file
+    solver = cp_model.CpSolver()
+    if (solver.Solve(model)) in [cp_model.FEASIBLE, cp_model.OPTIMAL]:
+        lines = [f"{solver.Value(all_vars[str(var) + '_freq']) / number_of_decimal_places}"
+                 for var in range(1, number_of_variables + 1)]
+        open(f"freq_result_{os.path.basename(file_name)}", 'w').write('\n'.join(lines))
+    else:
+        print("Solver found no solution. File was not saved")
 
 
 main()
