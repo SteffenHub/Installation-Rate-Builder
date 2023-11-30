@@ -7,31 +7,27 @@ from RuleBuilder import create_all_vars, add_all_rules_from_dimacs, create_freq_
 from txt_interface import read_txt_file, save_model_to_dir
 
 
-def find_min_max_of_var(var: cp_model.IntVar, model: cp_model.CpModel) -> list[int]:
+def get_value_of(var: cp_model.IntVar, model: cp_model.CpModel) -> int:
     solver_tmp = cp_model.CpSolver()
-    model.Minimize(var)
     stat = solver_tmp.Solve(model)
     if stat is cp_model.OPTIMAL:
-        minimum = solver_tmp.Value(var)
+        return solver_tmp.Value(var)
     else:
         if stat is cp_model.FEASIBLE:
-            raise ValueError("Only Feasible during Minimize")
+            raise ValueError("Only Feasible")
         if stat is cp_model.UNKNOWN:
-            raise ValueError("Unknown during Minimize")
+            raise ValueError("Unknown")
         if stat is cp_model.MODEL_INVALID:
-            raise ValueError("Invalid model during Minimize")
+            raise ValueError("Invalid model")
+        raise ValueError("Unknown Error")
+
+
+def find_min_max_of_var(var: cp_model.IntVar, model: cp_model.CpModel) -> list[int]:
+    model.Minimize(var)
+    minimum = get_value_of(var, model)
 
     model.Maximize(var)
-    stat = solver_tmp.Solve(model)
-    if stat is cp_model.OPTIMAL:
-        maximum = solver_tmp.Value(var)
-    else:
-        if stat is cp_model.FEASIBLE:
-            raise ValueError("Only Feasible during Maximize")
-        if stat is cp_model.UNKNOWN:
-            raise ValueError("Unknown during Maximize")
-        if stat is cp_model.MODEL_INVALID:
-            raise ValueError("Invalid model during Maximize")
+    maximum = get_value_of(var, model)
     return [minimum, maximum]
 
 
@@ -75,11 +71,12 @@ def main():
     if status == cp_model.OPTIMAL:
         for var in range(1, number_of_variables + 1):
             print(str(var) + "_freq: " + str(solver.Value(all_vars[str(var) + "_freq"]) / number_of_decimal_places))
-            print(solver.Value(all_vars[str(var) + "_freq"]))
     else:
         if status == cp_model.FEASIBLE:
             raise ValueError("Only Feasible")
         raise ValueError("not solvable")
+
+    print("\nThis was one possible solution.\n")
 
     var_list = list(range(1, number_of_variables + 1))
     while var_list:
