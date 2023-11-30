@@ -2,7 +2,7 @@ import os
 import random
 from ortools.sat.python import cp_model
 
-from RuleBuilder import create_all_vars, add_all_rules_from_dimacs, create_freq_of_vars, set_zero_freq, set_one_freq
+from rule_builder import create_all_vars, add_all_rules_from_dimacs, create_freq_of_vars, set_zero_freq, set_one_freq
 
 
 def get_value_of(var: cp_model.IntVar, model: cp_model.CpModel) -> int:
