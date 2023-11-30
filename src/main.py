@@ -2,7 +2,6 @@ import os
 import random
 from ortools.sat.python import cp_model
 
-from Dimacs_Interface import dimacs_str_to_int_list, extract_counts_from_dimacs
 from RuleBuilder import create_all_vars, add_all_rules_from_dimacs, create_freq_of_vars, set_zero_freq, set_one_freq
 
 
@@ -34,10 +33,11 @@ def main():
     file_name = "cnfBuilder100VarsVariance517684924774.txt"
     dimacs_file: list[str] = [line.strip() for line in open(file_name)]
 
-    cnf_int: list[list[int]] = dimacs_str_to_int_list(dimacs_file)
+    cnf_int: list[list[int]] = [list(map(int, line.strip().split()))[:-1] for line in dimacs_file if
+                                not (line.startswith('c') or line.startswith('p'))]
 
-    counts = extract_counts_from_dimacs(dimacs_file)
-    number_of_variables: int = counts[0]
+    number_of_variables: int = next(
+        int(num_vars) for line in dimacs_file if line.startswith('p cnf') for _, _, num_vars, _ in [line.split()])
 
     number_of_decimal_places = 100
 
