@@ -1,1 +1,1 @@
-# relative-frequencie-of-variables
+# relative-frequencies-of-variables
