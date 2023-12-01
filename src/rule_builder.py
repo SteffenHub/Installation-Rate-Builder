@@ -27,8 +27,8 @@ def create_freq_of_vars(number_of_variables: int, all_vars: dict[str, cp_model.I
             [all_vars[str(var) + "." + str(block)] for block in range(1, number_of_decimal_places + 1)]))
 
 
-def set_zero_freq(number_of_variables: int, model: cp_model.CpModel, all_vars: dict[str, cp_model.IntVar],
-                  should_have_zero_freq_vars: int):
+def get_sum_zero_freq(number_of_variables: int, model: cp_model.CpModel,
+                      all_vars: dict[str, cp_model.IntVar]) -> cp_model.IntVar:
     for var in range(1, number_of_variables + 1):
         help_var_zero = model.NewBoolVar(f"var_has_zero_freq_{var}")
         model.Add(all_vars[str(var) + "_freq"] == 0).OnlyEnforceIf(help_var_zero)
@@ -39,11 +39,11 @@ def set_zero_freq(number_of_variables: int, model: cp_model.CpModel, all_vars: d
     model.Add(
         number_of_zero_freq_vars == sum(
             [all_vars[f"var_has_zero_freq_{var}"] for var in range(1, number_of_variables + 1)]))
-    model.Add(number_of_zero_freq_vars == should_have_zero_freq_vars)
+    return number_of_zero_freq_vars
 
 
-def set_one_freq(number_of_variables: int, model: cp_model.CpModel, all_vars: dict[str, cp_model.IntVar],
-                 should_have_one_freq_vars: int, number_of_decimal_places: int):
+def get_sum_one_freq(number_of_variables: int, model: cp_model.CpModel, all_vars: dict[str, cp_model.IntVar],
+                     number_of_decimal_places: int) -> cp_model.IntVar:
     for var in range(1, number_of_variables + 1):
         help_var_one = model.NewBoolVar(f"var_has_one_freq_{var}")
         model.Add(all_vars[str(var) + "_freq"] == number_of_decimal_places).OnlyEnforceIf(help_var_one)
@@ -53,4 +53,4 @@ def set_one_freq(number_of_variables: int, model: cp_model.CpModel, all_vars: di
     model.Add(
         number_of_one_freq_vars == sum(
             [all_vars[f"var_has_one_freq_{var}"] for var in range(1, number_of_variables + 1)]))
-    model.Add(number_of_one_freq_vars == should_have_one_freq_vars)
+    return number_of_one_freq_vars
