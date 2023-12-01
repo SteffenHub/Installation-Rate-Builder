@@ -38,8 +38,8 @@ def handle_should_have_zero_one_freq(model: cp_model, number_of_variables: int, 
                                      number_of_decimal_places: int):
     # first try input values in a copied model
     model_c = deepcopy(model)
-    zero_freq = int(input("how many variables should have frequency 100.0%\n"))  # should have 0% frequency
-    one_freq = int(input("how many variables should have frequency 0.0%\n"))  # should have 100% frequency
+    zero_freq = int(input("how many variables should have frequency 0.0%\n"))  # should have 0% frequency
+    one_freq = int(input("how many variables should have frequency 100.0%\n"))  # should have 100% frequency
 
     # Add sum of all variables with frequency 100%/0% equals should_have value
     model_c.Add(get_sum_zero_freq(number_of_variables, model_c, all_vars) == zero_freq)
