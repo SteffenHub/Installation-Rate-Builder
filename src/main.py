@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+import time
 from copy import deepcopy
 from typing import Union
 
@@ -38,7 +39,7 @@ def find_min_max_of_var(var: cp_model.IntVar, model: cp_model.CpModel) -> list[i
 
 
 def handle_should_have_zero_one_freq(model: cp_model, number_of_variables: int, all_vars: dict[str, cp_model.IntVar],
-                                     number_of_decimal_places: int):
+                                     number_of_decimal_places: int) -> (int, int):
     # first try input values in a copied model
     model_c = deepcopy(model)
     # TODO print range you can choose from
@@ -79,6 +80,8 @@ def handle_should_have_zero_one_freq(model: cp_model, number_of_variables: int, 
     else:  # If should_have values are consistent -> add them to model
         model.Add(get_sum_zero_freq(number_of_variables, model, all_vars) == zero_freq)
         model.Add(get_sum_one_freq(number_of_variables, model, all_vars, number_of_decimal_places) == one_freq)
+
+    return zero_freq, one_freq
 
 
 def ask_and_get_cnf_file() -> (str, int, list[list[int]]):
@@ -134,7 +137,7 @@ def main():
     create_freq_of_vars(number_of_variables=number_of_variables, model=model, all_vars=all_vars,
                         number_of_decimal_places=number_of_decimal_places)
 
-    handle_should_have_zero_one_freq(model, number_of_variables, all_vars, number_of_decimal_places)
+    zero_freq, one_freq = handle_should_have_zero_one_freq(model, number_of_variables, all_vars, number_of_decimal_places)
 
     print("searching for a possible solution...")
     solver = cp_model.CpSolver()
@@ -173,7 +176,8 @@ def main():
         freq_for_input_var = input("Type in the frequency this variable should have: ")
         model.Add(all_vars[input_var + "_freq"] == int(freq_for_input_var))
         var_list.remove(int(input_var))
-
+    print("start timer")
+    start_time = time.time()
     while var_list:
         var = random.choice(var_list)
         var_list.remove(var)
@@ -192,8 +196,14 @@ def main():
     # save result to file
     solver = cp_model.CpSolver()
     if (solver.Solve(model)) in [cp_model.FEASIBLE, cp_model.OPTIMAL]:
-        lines = [f"{solver.Value(all_vars[str(var) + '_freq']) / number_of_decimal_places}"
-                 for var in range(1, number_of_variables + 1)]
+        lines = []
+        lines.append(f"c used cnf: {file_name}")
+        lines.append(f"c 100% vars: {one_freq}")
+        lines.append(f"c 0% vars: {zero_freq}")
+        lines.append(f"c used decimal places: {number_of_decimal_places}")
+        lines.append(f"c used seed: {seed}")
+        lines.append(f"c needed time: {time.time() - start_time}")
+        [lines.append(f"{solver.Value(all_vars[str(var) + '_freq']) / number_of_decimal_places}") for var in range(1, number_of_variables + 1)]
         open(f"freq_result_{os.path.basename(file_name)}", 'w').write('\n'.join(lines))
     else:
         print("Solver found no solution. File was not saved")
