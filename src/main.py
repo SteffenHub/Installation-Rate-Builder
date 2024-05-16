@@ -125,8 +125,7 @@ def main():
     add_all_rules_from_dimacs(cnf_int=cnf_int, number_of_decimal_places=number_of_decimal_places, model=model,
                               all_vars=all_vars)
     if cp_model.CpSolver().Solve(model) not in [cp_model.FEASIBLE, cp_model.OPTIMAL]:
-        print("Dimacs file is not solvable")
-        return
+        raise ValueError("Dimacs file is not solvable")
 
     # Create the frequencies for all variables
     create_freq_of_vars(number_of_variables=number_of_variables, model=model, all_vars=all_vars,
