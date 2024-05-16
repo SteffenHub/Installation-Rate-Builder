@@ -27,9 +27,11 @@ def get_value_of(var: cp_model.IntVar, model: cp_model.CpModel) -> Union[None, i
 
 
 def find_min_max_of_var(var: cp_model.IntVar, model: cp_model.CpModel) -> list[int]:
+    print("look up minimum for variable...")
     model.Minimize(var)
     minimum = get_value_of(var, model)
 
+    print("look up maximum for variable...")
     model.Maximize(var)
     maximum = get_value_of(var, model)
     return [minimum, maximum]
@@ -39,6 +41,7 @@ def handle_should_have_zero_one_freq(model: cp_model, number_of_variables: int, 
                                      number_of_decimal_places: int):
     # first try input values in a copied model
     model_c = deepcopy(model)
+    # TODO print range you can choose from
     zero_freq = int(input("how many variables should have frequency 0.0%\n"))  # should have 0% frequency
     one_freq = int(input("how many variables should have frequency 100.0%\n"))  # should have 100% frequency
 
@@ -133,6 +136,7 @@ def main():
 
     handle_should_have_zero_one_freq(model, number_of_variables, all_vars, number_of_decimal_places)
 
+    print("searching for a possible solution...")
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
 
@@ -147,6 +151,29 @@ def main():
     print("\nThis was one possible solution. Now we generate the frequencies with the random generator\n")
 
     var_list = list(range(1, number_of_variables + 1))
+
+    print("Before we start to set random frequencies for the variables, you can set some vars manually")
+    while True:
+        # TODO try catch for user input
+        print("Type stop if you don't want to set variables anymore")
+        input_var = input("Which variable you want to set: ")
+        if input_var == "stop":
+            print("Stopped manual set")
+            break
+        min_max = find_min_max_of_var(all_vars[input_var + "_freq"], model)
+        if min_max[0] == min_max[1]:
+            print("minimum and maximum for " + input_var + " are equal: " + str(min_max[0] / number_of_decimal_places))
+            var_list.remove(int(input_var))
+            continue
+        print("possible frequency for " + input_var + ": " + str(min_max[0] / number_of_decimal_places) + " - " + str(min_max[1] / number_of_decimal_places))
+        print("Which frequency should this variable have?")
+        print("If you choose 10 for number of decimal places use 3 for 30% or 7 for 70%")
+        print("If you choose 100 for number of decimal places use 30 for 30% or 73 for 73%")
+        print("If you choose 1000 for number of decimal places use 300 for 30% or 732 for 73,2%")
+        freq_for_input_var = input("Type in the frequency this variable should have: ")
+        model.Add(all_vars[input_var + "_freq"] == int(freq_for_input_var))
+        var_list.remove(int(input_var))
+
     while var_list:
         var = random.choice(var_list)
         var_list.remove(var)
