@@ -1,5 +1,6 @@
 import os
 import random
+import sys
 from copy import deepcopy
 from typing import Union
 
@@ -77,17 +78,42 @@ def handle_should_have_zero_one_freq(model: cp_model, number_of_variables: int, 
         model.Add(get_sum_one_freq(number_of_variables, model, all_vars, number_of_decimal_places) == one_freq)
 
 
-def main():
-    file_name = "cnfBuilder100VarsVariance517684924774.txt"
+def ask_and_get_cnf_file() -> (str, int, list[list[int]]):
+    file_name = input("Which cnf file should be used? \n insert filepath: ")
+
     dimacs_file: list[str] = [line.strip() for line in open(file_name)]
+    print("found file:")
+    [print(line) for line in dimacs_file]
 
     cnf_int: list[list[int]] = [list(map(int, line.strip().split()))[:-1] for line in dimacs_file if
                                 not (line.startswith('c') or line.startswith('p'))]
 
     number_of_variables: int = next(
         int(num_vars) for line in dimacs_file if line.startswith('p cnf') for _, _, num_vars, _ in [line.split()])
+    return file_name, number_of_variables, cnf_int
 
-    number_of_decimal_places = 100
+
+def ask_and_get_seed() -> int:
+    seed = input("Insert seed for the random generator. example: 12345. Type None if a random seed should be used: ")
+    if seed != "None":
+        seed = int(seed)
+    else:
+        seed = random.randrange(sys.maxsize)
+    return seed
+
+
+def main():
+    file_name, number_of_variables, cnf_int = ask_and_get_cnf_file()
+
+    seed = ask_and_get_seed()
+    print(f"Use {seed} as seed")
+    random.seed(seed)
+
+    print("How many decimal places should take into account?")
+    print("10 means 10% steps: 0.2 = 20%")
+    print("100 means 1% steps: 0.12 = 12%")
+    print("1000 means 0,1% steps: 0.342 = 34,2%")
+    number_of_decimal_places = int(input("More decimal places takes more time: "))
 
     model = cp_model.CpModel()
 
@@ -153,4 +179,5 @@ def main():
         print("Solver found no solution. File was not saved")
 
 
-main()
+if __name__ == "__main__":
+    main()
