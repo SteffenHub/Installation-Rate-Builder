@@ -144,7 +144,7 @@ def main():
             raise ValueError("Only Feasible")
         raise ValueError("not solvable")
 
-    print("\nThis was one possible solution.\n")
+    print("\nThis was one possible solution. Now we generate the frequencies with the random generator\n")
 
     var_list = list(range(1, number_of_variables + 1))
     while var_list:
@@ -161,12 +161,6 @@ def main():
         model.Add(all_vars[str(var) + "_freq"] == random_frequency)
         print("I've chosen: " + str(random_frequency))
         print(f"still missing {len(var_list)} variables")
-        #
-        # ebr_input = input("Enter the desired frequency: ")
-        # ebr_input = float(ebr_input)
-        # ebr_input = ebr_input * number_of_decimal_places
-        # ebr_input = int(ebr_input)
-        # model.Add(vars[str(var) + "_freq"] == ebr_input)
 
     # save result to file
     solver = cp_model.CpSolver()
