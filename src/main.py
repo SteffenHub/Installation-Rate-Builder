@@ -80,7 +80,7 @@ def handle_should_have_zero_one_freq(model: cp_model, number_of_variables: int, 
     else:  # If should_have values are consistent -> add them to model
         model.Add(get_sum_zero_freq(number_of_variables, model, all_vars) == zero_freq)
         model.Add(get_sum_one_freq(number_of_variables, model, all_vars, number_of_decimal_places) == one_freq)
-
+    print("")
     return zero_freq, one_freq
 
 
@@ -90,6 +90,7 @@ def ask_and_get_cnf_file() -> (str, int, list[list[int]]):
     dimacs_file: list[str] = [line.strip() for line in open(file_name)]
     print("found file:")
     [print(line) for line in dimacs_file]
+    print("")
 
     cnf_int: list[list[int]] = [list(map(int, line.strip().split()))[:-1] for line in dimacs_file if
                                 not (line.startswith('c') or line.startswith('p'))]
@@ -100,26 +101,39 @@ def ask_and_get_cnf_file() -> (str, int, list[list[int]]):
 
 
 def ask_and_get_seed() -> int:
-    seed = input("Insert seed for the random generator. example: 12345. Type None if a random seed should be used: ")
-    if seed != "None":
-        seed = int(seed)
-    else:
-        seed = random.randrange(sys.maxsize)
-    return seed
+    try:
+        seed = input("Insert seed for the random generator. example: 12345. Type None if a random seed should be used: ")
+        if seed != "None":
+            seed = int(seed)
+        else:
+            seed = random.randrange(sys.maxsize)
+        return seed
+    except Exception as e:
+        print(e)
+        print("Unknown input! Try again")
+        return ask_and_get_seed()
 
 
 def main():
     file_name, number_of_variables, cnf_int = ask_and_get_cnf_file()
 
     seed = ask_and_get_seed()
-    print(f"Use {seed} as seed")
+    print(f"Use {seed} as seed \n")
     random.seed(seed)
 
     print("How many decimal places should take into account?")
     print("10 means 10% steps: 0.2 = 20%")
     print("100 means 1% steps: 0.12 = 12%")
     print("1000 means 0,1% steps: 0.342 = 34,2%")
-    number_of_decimal_places = int(input("More decimal places takes more time: "))
+    print("More decimal places takes more time: ")
+    found = False
+    while not found:
+        try:
+            number_of_decimal_places = int(input("How many decimal places should take into account?"))
+            found = True
+        except Exception as e:
+            print("Unknown input! Try again")
+    print("")
 
     model = cp_model.CpModel()
 
@@ -157,13 +171,17 @@ def main():
 
     print("Before we start to set random frequencies for the variables, you can set some vars manually")
     while True:
-        # TODO try catch for user input
-        print("Type stop if you don't want to set variables anymore")
-        input_var = input("Which variable you want to set: ")
-        if input_var == "stop":
-            print("Stopped manual set")
-            break
-        min_max = find_min_max_of_var(all_vars[input_var + "_freq"], model)
+        print("")
+        try:
+            print("Type stop if you don't want to set variables anymore")
+            input_var = input("Which variable you want to set: ")
+            if input_var == "stop":
+                print("Stopped manual set")
+                break
+            min_max = find_min_max_of_var(all_vars[input_var + "_freq"], model)
+        except Exception as e:
+            print("Unknown input! Try again")
+            continue
         if min_max[0] == min_max[1]:
             print("minimum and maximum for " + input_var + " are equal: " + str(min_max[0] / number_of_decimal_places))
             var_list.remove(int(input_var))
@@ -173,7 +191,20 @@ def main():
         print("If you choose 10 for number of decimal places use 3 for 30% or 7 for 70%")
         print("If you choose 100 for number of decimal places use 30 for 30% or 73 for 73%")
         print("If you choose 1000 for number of decimal places use 300 for 30% or 732 for 73,2%")
-        freq_for_input_var = input("Type in the frequency this variable should have: ")
+        try:
+            freq_for_input_var = input("Type in the frequency this variable should have: ")
+            correct_input = input(f"frequency for {input_var} will be set to {int(freq_for_input_var)/number_of_decimal_places}. Is this correct? [True, False]")
+        except Exception as e:
+            print("Unknown input! Try again")
+            continue
+        if correct_input == "False":
+            print("Try again")
+            continue
+        elif correct_input == "True":
+            print(f"I will set frequency for {input_var} to {int(freq_for_input_var)/number_of_decimal_places}")
+        else:
+            print("Unknown input! Use True or False. Try again")
+            continue
         model.Add(all_vars[input_var + "_freq"] == int(freq_for_input_var))
         var_list.remove(int(input_var))
     print("start timer")
@@ -202,9 +233,11 @@ def main():
         lines.append(f"c 0% vars: {zero_freq}")
         lines.append(f"c used decimal places: {number_of_decimal_places}")
         lines.append(f"c used seed: {seed}")
-        lines.append(f"c needed time: {time.time() - start_time}")
+        lines.append(f"c needed time: {time.time() - start_time} seconds")
         [lines.append(f"{solver.Value(all_vars[str(var) + '_freq']) / number_of_decimal_places}") for var in range(1, number_of_variables + 1)]
-        open(f"freq_result_{os.path.basename(file_name)}", 'w').write('\n'.join(lines))
+        filename = f"freq_result_{os.path.basename(file_name)}"
+        open(filename, 'w').write('\n'.join(lines))
+        print(f"Saved result as {f"freq_result_{os.path.basename(file_name)}"}")
     else:
         print("Solver found no solution. File was not saved")
 
