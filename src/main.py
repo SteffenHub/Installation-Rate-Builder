@@ -237,7 +237,7 @@ def main():
         [lines.append(f"{solver.Value(all_vars[str(var) + '_freq']) / number_of_decimal_places}") for var in range(1, number_of_variables + 1)]
         filename = f"freq_result_{os.path.basename(file_name)}"
         open(filename, 'w').write('\n'.join(lines))
-        print(f"Saved result as {f"freq_result_{os.path.basename(file_name)}"}")
+        print(f"Saved result as freq_result_{os.path.basename(file_name)}")
     else:
         print("Solver found no solution. File was not saved")
 
