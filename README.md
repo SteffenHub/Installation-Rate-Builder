@@ -13,7 +13,7 @@ Installation rates refer to the frequency or percentage with which specific conf
 These rates provide insight into user preferences and can help in optimizing product offerings, inventory management, and marketing strategies.
 
 For instance, consider a configurable product like a smartphone that comes with various options such as different storage capacities,
-colors, and additional accessories. Installation rates would describe how often each of these options is chosen by users. For example:
+colors, and RAM capacities. Installation rates would describe how often each of these options is chosen by users. For example:
 - 1: 64 GB storage: 40%
 - 2: 128 GB storage: 35%
 - 3: 256 GB storage: 25%
@@ -85,12 +85,12 @@ After run the Program you get into a Dialog:
 > 
 > Use 8467335337672211825 as seed 
 > 
-> How many decimal places should take into account?
-> 10 means 10% steps: 0.2 = 20%
-> 100 means 1% steps: 0.12 = 12%
-> 1000 means 0,1% steps: 0.342 = 34,2%
-> More decimal places takes more time: 
-> How many decimal places should take into account?
+> How many decimal places should take into account?  
+> 10 means 10% steps: 0.2 = 20%  
+> 100 means 1% steps: 0.12 = 12%  
+> 1000 means 0,1% steps: 0.342 = 34,2%  
+> More decimal places takes more time:  
+> How many decimal places should take into account?  
 > > 10
 > 
 > how many variables should have frequency 0.0%
@@ -171,9 +171,15 @@ The result file after the Dialog and calculation:
 > 0.7  
 > 0.3  
 
-The input cnf file can be found in the data directory and the result file in the output directory.
-
-
+The input cnf file can be found in the data directory and the result file in the output directory.  
+When setting variable 1, you may have noticed that the minimum frequency is 10% and the maximum 80%, but
+could be 0% to 100%.  
+We set that 0 variables should have an installation rate of 0%.
+Therefore, the maximum installation rate we can set for variable 1 is 80%, because the variables 2 and 3 are in the same 
+family and can't be 0%.
+And that the variable 1 cannot be 0% is because we set that no variable can have 0%.
+We have set that we move in 10% steps. 
+If you want smaller steps, such as 1% steps, then answer the question of 'How many decimal places should take into account?' with 100.
 # Run the Code
 
 To run the Code you have to install google ortools
