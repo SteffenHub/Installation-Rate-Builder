@@ -1,0 +1,13 @@
+p cnf 6 8
+c Family for storage
+1 2 3 0
+-1 -2 0
+-1 -3 0
+-2 -3 0
+c Family for color
+4 0
+c Family for accessories
+5 6 0
+-5 -6 0
+c 64GB Storage is not available with 16 GB RAM(1 -> !6)
+-1 -6 0
