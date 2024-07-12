@@ -24,15 +24,16 @@ def get_value_of(var: cp_model.IntVar, model: cp_model.CpModel) -> Union[None, i
         if stat is cp_model.MODEL_INVALID:
             raise ValueError("Invalid model")
         if stat is cp_model.INFEASIBLE:
+            # TODO Do not return None but raise an error
             return None
 
 
 def find_min_max_of_var(var: cp_model.IntVar, model: cp_model.CpModel) -> list[int]:
-    print("look up minimum for variable...")
+    print(f"look up minimum for variable {var.Name()}...")
     model.Minimize(var)
     minimum = get_value_of(var, model)
 
-    print("look up maximum for variable...")
+    print(f"look up maximum for variable {var.Name()}...")
     model.Maximize(var)
     maximum = get_value_of(var, model)
     return [minimum, maximum]
@@ -171,6 +172,7 @@ def main():
 
     print("Before we start to set random frequencies for the variables, you can set some vars manually")
     while True:
+        # TODO prevent wrong user input for example choose from range 0.3 - 0.5 but user choose 0.7
         print("")
         try:
             print("Type stop if you don't want to set variables anymore")

@@ -12,6 +12,7 @@ def create_all_vars(number_of_variables: int, number_of_decimal_places: int, mod
 
 def add_all_rules_from_dimacs(cnf_int: list[list[int]], number_of_decimal_places: int, model: cp_model.CpModel,
                               all_vars: dict[str, cp_model.IntVar]):
+    # TODO If KeyError print it might be because the line p cnf n i in the cnf file is wrong
     for rule in cnf_int:
         for block in range(1, number_of_decimal_places + 1):
             model.AddBoolOr(
