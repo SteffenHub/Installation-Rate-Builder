@@ -24,9 +24,8 @@ colors, and RAM capacities. Installation rates would describe how often each of 
 These percentages indicate the popularity of each configuration option among users.
 
 Behind these installation rates, there is a Conjunctive Normal Form (CNF) representation.
-The individual choice options, such as storage capacities, form a family, which is represented as XOR in the CNF.
-For example a Family of 1, 2 and 3, the storage configuration forms a family with rule:
-> (1 XOR 2 XOR 3)  
+The individual choice options, such as storage capacities, form a family, which are in an XOR relationship.
+For example a Family of 1, 2 and 3 means you can choose exactly one of them.
 
 In the conjunctive normal form, this is written as:
 > ((1 ∨ 2 ∨ 3) ∧ (!1 ∨ !2) ∧ (!1 ∨ !3) ∧ (!2 ∨ !3))
