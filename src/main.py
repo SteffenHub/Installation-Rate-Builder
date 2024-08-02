@@ -6,6 +6,7 @@ from copy import deepcopy
 from typing import Union
 
 from ortools.sat.python import cp_model
+from ortools.sat.python.cp_model import CpSolverSolutionCallback
 
 from rule_builder import create_all_vars, add_all_rules_from_dimacs, create_freq_of_vars, get_sum_zero_freq, \
     get_sum_one_freq
@@ -115,6 +116,23 @@ def ask_and_get_seed() -> int:
         return ask_and_get_seed()
 
 
+class CustomSolutionPrinterFindOneSolution(CpSolverSolutionCallback):
+    def __init__(self):
+        CpSolverSolutionCallback.__init__(self)
+        self.solution_count = 0
+
+    def on_solution_callback(self) -> None:
+        self.solution_count += 1
+        if self.solution_count >= 1:
+            self.StopSearch()
+
+
+def is_feasible(model: cp_model.CpModel) -> bool:
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+    return status in [cp_model.OPTIMAL, cp_model.FEASIBLE]
+
+
 def main():
     file_name, number_of_variables, cnf_int = ask_and_get_cnf_file()
 
@@ -216,14 +234,30 @@ def main():
         var_list.remove(var)
         min_max = find_min_max_of_var(all_vars[str(var) + "_freq"], model)
         if min_max[0] == min_max[1]:
-            print(
-                "minimum and maximum for " + str(var) + " are equal: " + str(min_max[0] / number_of_decimal_places))
+            print("minimum and maximum for " + str(var) + " are equal: " + str(min_max[0] / number_of_decimal_places))
+            print(f"still missing {len(var_list)} variables")
             continue
         print("possible frequency for " + str(var) + ": " + str(min_max[0] / number_of_decimal_places) + " - " + str(
             min_max[1] / number_of_decimal_places))
-        random_frequency = random.randint(min_max[0], min_max[1])
-        model.Add(all_vars[str(var) + "_freq"] == random_frequency)
-        print("I've chosen: " + str(random_frequency))
+
+        found_feasible_frequency = False
+        tried_frequencies = []
+        while not found_feasible_frequency:
+            random_frequency = random.randint(min_max[0], min_max[1])
+            if random_frequency in tried_frequencies:
+                continue
+            print("I've chosen: " + str(random_frequency))
+            # TODO use copy procedure from ortools instead of deepcopy model_copy.CopyFrom(model)
+            # TODO to use copy needs to copy all variables or the needed ones
+            # TODO model_copy.GetIntVarFromProtoIndex(variable.Index())
+            model_copy = deepcopy(model)
+            model_copy.Add(all_vars[str(var) + "_freq"] == random_frequency)
+            if not is_feasible(model_copy):
+                print(f"Model is not feasible with {random_frequency}! Try another frequency")
+                tried_frequencies.append(random_frequency)
+            else:
+                found_feasible_frequency = True
+                model.Add(all_vars[str(var) + "_freq"] == random_frequency)
         print(f"still missing {len(var_list)} variables")
 
     # save result to file
